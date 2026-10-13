@@ -34,6 +34,28 @@ A plataforma reúne métricas, dependências, ciclos de dependência e exploraç
 
 Os resultados exibidos são derivados das análises executadas. Módulos ainda não implementados são identificados como recursos futuros, sem preenchimento com dados simulados.
 
+## Vislumbre da interface
+
+Telas do Pandora Architect analisando o repositório real `air_mouse_pro` (run #3).
+
+### Métricas do repositório
+
+Painel com arquivos, linhas de código, classes, funções, complexidade e hotspots de complexidade.
+
+<img src="docs/screenshots/analise.png" alt="Painel de Métricas do repositório" width="100%">
+
+### Dependências
+
+Imports resolvidos e classificados a partir do código-fonte.
+
+<img src="docs/screenshots/dependencias.png" alt="Lista de dependências resolvidas" width="100%">
+
+### Mapa da arquitetura
+
+Grafo de módulos e símbolos com as relações entre eles — aqui, 576 nós e 659 arestas.
+
+<img src="docs/screenshots/mapa-arquitetura-det.png" alt="Mapa da arquitetura em modo detalhado" width="100%">
+
 ## Tecnologias
 
 | Camada | Tecnologias |
