@@ -30,3 +30,6 @@ backend/.env
 .DS_Store
 .idea/
 .vscode/
+
+# Artefatos de teste automatizado (Playwright MCP)
+.playwright-mcp/

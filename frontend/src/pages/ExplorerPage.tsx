@@ -21,10 +21,11 @@ import { formatBytes, formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useExplorerFile, useExplorerTree } from '@/store/api'
 
+/** Caminho relativo à raiz do projeto; a raiz é a string vazia "". */
 function parentPath(path: string): string {
   const normalized = path.replace(/\/+$/, '')
   const idx = normalized.lastIndexOf('/')
-  return idx <= 0 ? '/' : normalized.slice(0, idx)
+  return idx <= 0 ? '' : normalized.slice(0, idx)
 }
 
 /** Árvore de diretórios: navega por `currentPath`, seleciona arquivos. */
@@ -51,7 +52,7 @@ function TreePanel({
           Estrutura
         </CardTitle>
         <CardDescription className="truncate font-mono text-[11px]">
-          {data?.path ?? currentPath}
+          {data?.path || '/'}
         </CardDescription>
       </CardHeader>
       <CardContent className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
@@ -68,7 +69,7 @@ function TreePanel({
 
         {data && (
           <ul className="space-y-0.5 text-sm">
-            {currentPath !== '/' && currentPath !== data.root && (
+            {currentPath !== '' && (
               <li>
                 <button
                   type="button"
@@ -242,7 +243,7 @@ function FileViewer({ projectId, filePath }: { projectId: number; filePath: stri
 }
 
 export function ExplorerPage({ projectId }: { projectId: number }) {
-  const [currentPath, setCurrentPath] = useState('/')
+  const [currentPath, setCurrentPath] = useState('')
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
 
   const navigateTo = (path: string) => setCurrentPath(path)
@@ -256,7 +257,7 @@ export function ExplorerPage({ projectId }: { projectId: number }) {
             Arquivos do repositório como estão no disco — leitura somente.
           </p>
         </div>
-        {currentPath !== '/' && (
+        {currentPath !== '' && (
           <Button
             variant="outline"
             size="sm"

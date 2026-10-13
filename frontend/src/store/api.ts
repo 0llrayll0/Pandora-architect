@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import {
   keepPreviousData,
   useMutation,
@@ -173,9 +174,14 @@ export function useExplorerTree(
   path: string,
   depth: number,
 ) {
-  const params = new URLSearchParams({ path, depth: String(depth) })
+  // O backend espera caminho RELATIVO à raiz (raiz = string vazia).
+  // Remove barra inicial (nunca enviar caminho absoluto), colapsa "//",
+  // remove barra final; "/" ou vazio vira "" — evita 403 path_not_allowed.
+  const normalizedPath =
+    path.replace(/^\/+/, '').replace(/\/+$/, '').replace(/\/{2,}/g, '/') || ''
+  const params = new URLSearchParams({ path: normalizedPath, depth: String(depth) })
   return useQuery({
-    queryKey: KEY.explorer(projectId ?? 0, path, depth),
+    queryKey: KEY.explorer(projectId ?? 0, normalizedPath, depth),
     queryFn: () =>
       apiGet<ExplorerTree>(`/api/projects/${projectId}/explorer?${params.toString()}`),
     enabled: projectId !== null,
@@ -236,12 +242,21 @@ export function useAnalyzeProject() {
   })
 }
 
-/** Invalida tudo que depende de uma run (após conclusão via SSE). */
+/**
+ * Invalida tudo que depende de uma run (após conclusão via SSE).
+ *
+ * `useCallback` com `[queryClient]` garante referência ESTÁVEL entre renders:
+ * sem isso a função nova a cada render recriava o `useEffect` de
+ * `useRunProgress` → `EventSource` reabria → `onerror` → invalidate → loop.
+ */
 export function useInvalidateRunData() {
   const queryClient = useQueryClient()
-  return (runId: number, projectId: number) => {
-    void queryClient.invalidateQueries({ queryKey: KEY.projects })
-    void queryClient.invalidateQueries({ queryKey: ['runs', runId] })
-    void queryClient.invalidateQueries({ queryKey: KEY.runs(projectId) })
-  }
+  return useCallback(
+    (runId: number, projectId: number) => {
+      void queryClient.invalidateQueries({ queryKey: KEY.projects })
+      void queryClient.invalidateQueries({ queryKey: ['runs', runId] })
+      void queryClient.invalidateQueries({ queryKey: KEY.runs(projectId) })
+    },
+    [queryClient],
+  )
 }
