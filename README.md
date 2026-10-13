@@ -205,3 +205,9 @@ npm run lint
 **Pandora Architect** · Local Repository Intelligence
 
 </div>
+
+
+## Licença
+
+Este projeto está licenciado sob a licença MIT.
+Consulte o arquivo [LICENSE](LICENSE) para obter mais informações.
