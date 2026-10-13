@@ -1,0 +1,61 @@
+[project]
+name = "pandora-architect-backend"
+version = "0.1.0"
+description = "Pandora Architect - local repository intelligence backend"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sqlmodel>=0.0.22",
+    "pydantic-settings>=2.4",
+    "networkx>=3.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "httpx>=0.27",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [".venv", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "SIM108",  # ternário implícito nem sempre melhora a legibilidade
+    "RUF001",  # aspas ambíguas em strings traduzidas
+    "RUF002",
+    "RUF003",
+]
+
+# Depends()/Query() em defaults é o padrão idiomático do FastAPI
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Header"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["app"]
+ignore_missing_imports = true
+warn_unused_ignores = false
+check_untyped_defs = true
+no_implicit_optional = true
+disable_error_code = ["import-untyped", "misc", "assignment", "index", "attr-defined", "union-attr", "arg-type", "return-value", "operator", "call-overload", "var-annotated", "has-type"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,32 @@
+# Dependências e builds
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Runtime / processos
+.run/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+backend/.venv/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Dados locais (SQLite do Pandora)
+backend/data/
+*.db
+*.sqlite3
+
+# Segredo local
+.env
+backend/.env
+
+# Editores / SO
+.DS_Store
+.idea/
+.vscode/

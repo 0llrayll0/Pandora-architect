@@ -1,0 +1,125 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink: #0a0e14;
+  --color-surface: #10151d;
+  --color-violet: #8b5cf6;
+  --color-cyan: #22d3ee;
+  --font-mono:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink);
+  color: #e4e4e7;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Scrollbars discretas no tema escuro */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+  background-clip: content-box;
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+}
+
+/* ---------------------------------------------------------------------------
+ * Mapa de arquitetura (React Flow)
+ * ------------------------------------------------------------------------- */
+
+/* Superfície do canvas: gradiente violeta/ciano bem apagado sobre o ink */
+.map-surface {
+  position: relative;
+  background-image:
+    radial-gradient(1100px 620px at 12% -15%, rgba(124, 58, 237, 0.12), transparent 62%),
+    radial-gradient(900px 520px at 98% 112%, rgba(34, 211, 238, 0.07), transparent 60%);
+}
+
+/* Nó customizado: transições suaves + halo de hover via ::after
+ * (não usa border-color/box-shadow do próprio elemento, que o React Flow
+ *  recebe por style inline e teria precedência sobre a classe). */
+.arch-node {
+  position: relative;
+  transition:
+    opacity 160ms ease,
+    filter 160ms ease;
+}
+
+.arch-node::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 0 0 rgba(167, 139, 250, 0);
+  transition: box-shadow 180ms ease;
+}
+
+.arch-node:hover::after {
+  box-shadow:
+    0 0 0 1px rgba(167, 139, 250, 0.55),
+    0 0 26px -6px rgba(139, 92, 246, 0.7);
+}
+
+/* Arestas destacadas (seleção/busca) ganham um leve brilho */
+.map-edge-glow .react-flow__edge.map-edge-active .react-flow__edge-path {
+  filter: drop-shadow(0 0 4px rgba(103, 232, 249, 0.5));
+}
+
+/* Ponto de origem/destino discretos no estado normal */
+.react-flow__handle.react-flow__handle-left,
+.react-flow__handle.react-flow__handle-right,
+.react-flow__handle.react-flow__handle-top,
+.react-flow__handle.react-flow__handle-bottom {
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.arch-node:hover .react-flow__handle,
+.arch-node:focus-within .react-flow__handle {
+  opacity: 1;
+}
