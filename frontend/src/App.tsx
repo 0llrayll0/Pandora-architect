@@ -1,15 +1,14 @@
 import type { ComponentType } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
-import { Sparkles } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { ArchitectureMapPage } from '@/pages/ArchitectureMapPage'
+import { ArchitectPage } from '@/pages/ArchitectPage'
 import { CyclesPage } from '@/pages/CyclesPage'
 import { DependenciesPage } from '@/pages/DependenciesPage'
 import { ExplorerPage } from '@/pages/ExplorerPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { HotspotsPage } from '@/pages/HotspotsPage'
 import { OverviewPage } from '@/pages/OverviewPage'
-import { PhaseSoon } from '@/pages/PhaseSoon'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 
@@ -30,6 +29,7 @@ const ExplorerRoute = projectRoute(ExplorerPage)
 const MapRoute = projectRoute(ArchitectureMapPage)
 const HotspotsRoute = projectRoute(HotspotsPage)
 const HistoryRoute = projectRoute(HistoryPage)
+const ArchitectRoute = projectRoute(ArchitectPage)
 
 export default function App() {
   return (
@@ -46,17 +46,7 @@ export default function App() {
           <Route path="map" element={<MapRoute />} />
           <Route path="hotspots" element={<HotspotsRoute />} />
           <Route path="history" element={<HistoryRoute />} />
-          <Route
-            path="ai"
-            element={
-              <PhaseSoon
-                phase={6}
-                title="Arquiteto IA"
-                description="Sugestões de refatoração geradas a partir do grafo real do código."
-                icon={<Sparkles className="h-8 w-8" />}
-              />
-            }
-          />
+          <Route path="ai" element={<ArchitectRoute />} />
         </Route>
 
         <Route path="projects" element={<Navigate to="/" replace />} />

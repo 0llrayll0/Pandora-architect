@@ -57,7 +57,7 @@ export function Sidebar({ projectId, onNavigate }: SidebarProps) {
           { to: `/projects/${projectId}/map`, label: 'Mapa da Arquitetura', icon: Map },
           { to: `/projects/${projectId}/hotspots`, label: 'Hotspots', icon: Flame },
           { to: `/projects/${projectId}/history`, label: 'Histórico', icon: History },
-          { to: `/projects/${projectId}/ai`, label: 'Arquiteto IA', icon: Sparkles, phase: 6 },
+          { to: `/projects/${projectId}/ai`, label: 'Arquiteto IA', icon: Sparkles },
         ]
 
   return (

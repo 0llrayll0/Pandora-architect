@@ -249,6 +249,31 @@ class RunMetricSnapshot(SQLModel, table=True):
     created_at: datetime = Field(default_factory=utcnow)
 
 
+class ArchitectureReport(SQLModel, table=True):
+    """Relatório arquitetural gerado pelo Arquiteto IA (Fase 6).
+
+    Um por run (``run_id`` único): regenerar sobrescreve a linha. O
+    ``payload`` guarda o relatório completo (resumo, fortes, riscos,
+    plano de ação, findings heurísticos e totais do grafo).
+    ``ollama_used`` registra se o LLM local foi chamado com sucesso —
+    quando ``False`` o relatório é 100% heurística determinística.
+    """
+
+    __tablename__ = "architecture_reports"
+
+    id: int | None = Field(default=None, primary_key=True)
+    run_id: int = Field(index=True, unique=True)
+    project_id: int = Field(index=True)
+
+    payload: dict[str, Any] = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False, default=dict)
+    )
+    ollama_used: bool = False
+    ollama_model: str = Field(default="", max_length=100)  # modelo realmente usado
+
+    created_at: datetime = Field(default_factory=utcnow)
+
+
 class AppSetting(SQLModel, table=True):
     """Configuração-chave persistida (overrides operacionais)."""
 

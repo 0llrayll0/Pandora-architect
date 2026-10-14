@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # backend/app/config.py -> backend/
@@ -22,6 +23,7 @@ class Settings(BaseSettings):
         env_file=BACKEND_DIR / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        populate_by_name=True,
     )
 
     # Servidor
@@ -34,6 +36,17 @@ class Settings(BaseSettings):
 
     # CORS (somente o dev server do Vite em desenvolvimento)
     dev_origin: str = "http://localhost:5173"
+
+    # Arquiteto IA (Fase 6) — Ollama local é OPCIONAL: se indisponível o
+    # relatório sai só com heurísticas determinísticas (nunca 500).
+    ollama_url: str = Field(
+        default="http://localhost:11434",
+        validation_alias=AliasChoices("PANDORA_OLLAMA_URL", "ollama_url"),
+    )
+    ollama_model: str = Field(
+        default="qwen2.5-coder:latest",
+        validation_alias=AliasChoices("PANDORA_OLLAMA_MODEL", "ollama_model"),
+    )
 
     # Limites de descoberta de arquivos
     max_file_size_bytes: int = 1024 * 1024  # 1 MB

@@ -21,7 +21,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from .config import get_settings
 from .db import init_db
 from .errors import ApiException
-from .routers import analysis, explorer, graph, health, projects
+from .routers import ai, analysis, explorer, graph, health, projects
 from .security import SecurityError
 
 API_PREFIX = "/api"
@@ -111,6 +111,7 @@ app.include_router(projects.router, prefix=API_PREFIX)
 app.include_router(analysis.router, prefix=API_PREFIX)
 app.include_router(graph.router, prefix=API_PREFIX)
 app.include_router(explorer.router, prefix=API_PREFIX)
+app.include_router(ai.router, prefix=API_PREFIX)
 
 
 @app.get("/", include_in_schema=False)

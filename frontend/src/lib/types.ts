@@ -369,3 +369,26 @@ export interface Health {
   python: string
   projects: number
 }
+
+// ---------------------------------------------------------------------------
+// Fase 6 — relatório arquitetural (POST/GET /api/ai/runs/{run_id}/report)
+// ---------------------------------------------------------------------------
+
+export interface ArchitectureReport {
+  run_id: number
+  ollama_used: boolean
+  ollama_model: string | null
+  executive_summary: string
+  strengths: string[]
+  risks: { title: string; severity: 'high' | 'medium' | 'low'; description: string }[]
+  action_plan: { action: string; justification: string; impact: string }[]
+  findings: {
+    type: string
+    severity: string
+    title: string
+    description: string
+    action: string
+  }[]
+  graph_totals: Record<string, number>
+  generated_at: string
+}

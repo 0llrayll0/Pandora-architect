@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { apiGet, apiSend, errorMessage } from '@/lib/api'
 import type {
   AnalysesPackage,
+  ArchitectureReport,
   ComparePackage,
   CyclesPackage,
   DependencyClassification,
@@ -46,6 +47,7 @@ const KEY = {
     ['projects', projectId, 'explorer', path, depth] as const,
   explorerFile: (projectId: number, path: string) =>
     ['projects', projectId, 'explorer-file', path] as const,
+  report: (runId: number) => ['runs', runId, 'report'] as const,
 }
 
 // ---------------------------------------------------------------------------
@@ -152,6 +154,21 @@ export function useAnalyses(projectId: number | null) {
   })
 }
 
+/**
+ * Relatório arquitetural cacheado da run (Fase 6).
+ *
+ * 404 `report_not_found` é esperado antes da primeira geração — sem retry
+ * para o botão de "Gerar relatório" aparecer rápido.
+ */
+export function useReport(runId: number | null) {
+  return useQuery({
+    queryKey: KEY.report(runId ?? 0),
+    queryFn: () => apiGet<ArchitectureReport>(`/api/ai/runs/${runId}/report`),
+    enabled: runId !== null,
+    retry: false,
+  })
+}
+
 /** Diff entre duas runs do mesmo projeto. */
 export function useCompare(
   projectId: number | null,
@@ -237,6 +254,27 @@ export function useAnalyzeProject() {
       queryClient.invalidateQueries({ queryKey: KEY.projects })
       queryClient.invalidateQueries({ queryKey: KEY.runs(run.project_id) })
       toast.info(`Análise #${run.id} iniciada.`)
+    },
+    onError: (error) => toast.error(errorMessage(error)),
+  })
+}
+
+/**
+ * Gera (POST) o relatório arquitetural da run e invalida o cache do report.
+ *
+ * Heurísticas sempre rodam; o Ollama é opcional no backend — uma falha dele
+ * não vira erro: a resposta volta com `ollama_used: false`.
+ */
+export function useGenerateReport(runId: number | null) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      if (runId === null) throw new Error('Nenhuma análise ativa para analisar.')
+      return apiSend<ArchitectureReport>('POST', `/api/ai/runs/${runId}/report`, {})
+    },
+    onSuccess: (report) => {
+      void queryClient.invalidateQueries({ queryKey: KEY.report(report.run_id) })
+      toast.success('Relatório arquitetural gerado.')
     },
     onError: (error) => toast.error(errorMessage(error)),
   })
