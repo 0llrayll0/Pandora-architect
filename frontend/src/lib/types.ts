@@ -382,6 +382,16 @@ export interface ArchitectureReport {
   strengths: string[]
   risks: { title: string; severity: 'high' | 'medium' | 'low'; description: string }[]
   action_plan: { action: string; justification: string; impact: string }[]
+  /**
+   * Seção de dependências (gerada pelo backend a partir do grafo da run).
+   *
+   * Opcional: relatórios cacheados antes desta seção não a trazem.
+   */
+  dependencies?: {
+    internal: { name: string; imported_by: string[]; out_degree: number }[]
+    external: { name: string; import_count: number; is_stdlib: boolean }[]
+    recommendations: string[]
+  }
   findings: {
     type: string
     severity: string
@@ -391,4 +401,31 @@ export interface ArchitectureReport {
   }[]
   graph_totals: Record<string, number>
   generated_at: string
+}
+
+// ---------------------------------------------------------------------------
+// Provedor de IA (GET/PUT /api/ai/config)
+// ---------------------------------------------------------------------------
+
+/** Provedor escolhido em Configurações. */
+export type AiProvider = 'ollama' | 'openai' | 'custom' | 'anthropic' | 'gemini'
+
+/**
+ * Configuração efetiva do provedor.
+ *
+ * A API key nunca aparece aqui — o backend expõe apenas `has_api_key`.
+ */
+export interface AiConfig {
+  provider: AiProvider
+  base_url: string
+  model: string
+  has_api_key: boolean
+}
+
+/** Payload de PUT /api/ai/config (`api_key` null/vazia mantém a atual). */
+export interface AiConfigUpdate {
+  provider: AiProvider
+  base_url: string
+  model: string
+  api_key: string | null
 }

@@ -3,13 +3,23 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # backend/app/config.py -> backend/
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_DATA_DIR = BACKEND_DIR / "data"
+
+#: Provedores de IA aceitos pelo campo ``ai_provider`` (config e endpoints).
+AI_PROVIDERS: tuple[str, ...] = (
+    "ollama",
+    "openai",
+    "custom",
+    "anthropic",
+    "gemini",
+)
 
 
 class Settings(BaseSettings):
@@ -47,6 +57,34 @@ class Settings(BaseSettings):
         default="qwen2.5-coder:latest",
         validation_alias=AliasChoices("PANDORA_OLLAMA_MODEL", "ollama_model"),
     )
+
+    # Provedor de IA: "ollama" (local), "openai", "custom", "anthropic" ou
+    # "gemini". Os valores persistidos na tabela ``settings`` têm prioridade
+    # sobre estas vars de ambiente (ver ``routers/ai.py::_resolve_ai_config``).
+    # ``ai_api_key`` NUNCA é devolvida por endpoint GET nem logada.
+    ai_provider: str = Field(
+        default="ollama",
+        validation_alias=AliasChoices("PANDORA_AI_PROVIDER", "ai_provider"),
+    )
+    ai_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("PANDORA_AI_API_KEY", "ai_api_key"),
+    )
+    ai_base_url: str = Field(
+        default="",
+        validation_alias=AliasChoices("PANDORA_AI_BASE_URL", "ai_base_url"),
+    )
+    ai_model: str = Field(
+        default="",
+        validation_alias=AliasChoices("PANDORA_AI_MODEL", "ai_model"),
+    )
+
+    @field_validator("ai_provider", mode="before")
+    @classmethod
+    def _validate_ai_provider(cls, value: Any) -> str:
+        """Provedor desconhecido (env/``.env``) cai em ``ollama``."""
+        provider = str(value or "ollama").strip().lower()
+        return provider if provider in AI_PROVIDERS else "ollama"
 
     # Limites de descoberta de arquivos
     max_file_size_bytes: int = 1024 * 1024  # 1 MB

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ExternalLink, Loader2, RefreshCw } from 'lucide-react'
 import { BrandMark } from '@/components/BrandMark'
 import { Badge } from '@/components/ui/badge'
@@ -9,8 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { useHealth } from '@/store/api'
+import type { AiProvider } from '@/lib/types'
+import { useAiConfig, useHealth, useSaveAiConfig } from '@/store/api'
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -18,6 +22,173 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="text-zinc-500">{label}</span>
       <span className="truncate font-mono text-zinc-200">{value}</span>
     </div>
+  )
+}
+
+/** Placeholders de Base URL / Modelo / API key por provedor. */
+const PROVIDER_PLACEHOLDERS: Record<
+  AiProvider,
+  { baseUrl: string; model: string; apiKey: string }
+> = {
+  ollama: { baseUrl: 'http://localhost:11434', model: 'qwen2.5-coder:latest', apiKey: '' },
+  openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini', apiKey: 'sk-...' },
+  custom: { baseUrl: 'https://...', model: 'seu-modelo', apiKey: 'sk-...' },
+  anthropic: {
+    baseUrl: 'https://api.anthropic.com',
+    model: 'claude-sonnet-4-20250514',
+    apiKey: 'sk-ant-...',
+  },
+  gemini: {
+    baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
+    model: 'gemini-2.0-flash',
+    apiKey: 'AIza...',
+  },
+}
+
+/**
+ * Card "Provedor de IA" (GET/PUT /api/ai/config).
+ *
+ * A API key só vai para o backend quando digitada; string vazia = manter a
+ * chave já salva. O GET nunca devolve a chave — só `has_api_key`.
+ */
+function AiProviderCard() {
+  const { data: config } = useAiConfig()
+  const save = useSaveAiConfig()
+  const [provider, setProvider] = useState<AiProvider>('ollama')
+  const [baseUrl, setBaseUrl] = useState('')
+  const [model, setModel] = useState('')
+  const [apiKey, setApiKey] = useState('')
+  const synced = useRef(false)
+
+  // Sincroniza o form com o backend quando os dados chegam (primeira carga ou
+  // troca real de dados). O ref `synced` evita sobrescrever o que o usuário
+  // está digitando em refetches de fundo com os mesmos dados.
+  useEffect(() => {
+    if (!config || synced.current) return
+    synced.current = true
+    setProvider(config.provider)
+    setBaseUrl(config.base_url)
+    setModel(config.model)
+  }, [config])
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault()
+    if (save.isPending) return
+    save.mutate(
+      {
+        provider,
+        base_url: baseUrl.trim(),
+        model: model.trim(),
+        api_key: apiKey.trim() || null,
+      },
+      {
+        onSuccess: () => {
+          setApiKey('')
+          // libera o próximo refetch (pós-invalidate) para re-sincronizar
+          synced.current = false
+        },
+      },
+    )
+  }
+
+  const placeholders = PROVIDER_PLACEHOLDERS[provider]
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          Provedor de IA
+          {config && (
+            <Badge variant={config.has_api_key ? 'success' : 'secondary'}>
+              {config.has_api_key ? 'Chave configurada' : 'Sem chave'}
+            </Badge>
+          )}
+        </CardTitle>
+        <CardDescription>
+          Modelo usado pelo relatório arquitetural. Ollama roda local; OpenAI,
+          Anthropic, Gemini e customizado usam API key.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label htmlFor="ai-provider" className="text-sm text-zinc-500">
+                Provedor
+              </label>
+              <Select
+                id="ai-provider"
+                value={provider}
+                onChange={(e) => setProvider(e.target.value as AiProvider)}
+                className="w-full"
+              >
+                <option value="ollama">Ollama (local)</option>
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic (Claude)</option>
+                <option value="gemini">Google Gemini</option>
+                <option value="custom">Customizado</option>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="ai-model" className="text-sm text-zinc-500">
+                Modelo
+              </label>
+              <Input
+                id="ai-model"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder={placeholders.model}
+                className="font-mono text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="ai-base-url" className="text-sm text-zinc-500">
+              Base URL
+            </label>
+            <Input
+              id="ai-base-url"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+              placeholder={placeholders.baseUrl}
+              className="font-mono text-xs"
+            />
+          </div>
+
+          {provider !== 'ollama' && (
+            <div className="space-y-1.5">
+              <label htmlFor="ai-api-key" className="text-sm text-zinc-500">
+                API Key
+              </label>
+              <Input
+                id="ai-api-key"
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder={placeholders.apiKey}
+                autoComplete="off"
+                className="font-mono text-xs"
+              />
+              <p className="text-xs text-zinc-500">
+                Em branco mantém a chave já salva.
+              </p>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <Button type="submit" disabled={save.isPending}>
+              {save.isPending ? <Loader2 className="animate-spin" /> : null}
+              Salvar configuração
+            </Button>
+            <p className="text-xs text-zinc-500">
+              A chave é armazenada apenas no backend e nunca é enviada de volta ao
+              navegador.
+            </p>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -98,6 +269,8 @@ export function SettingsPage() {
           </p>
         </CardContent>
       </Card>
+
+      <AiProviderCard />
 
       <Card>
         <CardHeader>

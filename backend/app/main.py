@@ -49,7 +49,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.dev_origin, "http://127.0.0.1:5173"],
     allow_credentials=False,
-    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -147,7 +147,7 @@ def api_index() -> dict[str, Any]:
 
 @app.api_route(
     "/api/{rest:path}",
-    methods=["GET", "POST", "PATCH", "DELETE"],
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     include_in_schema=False,
 )
 async def api_not_found(rest: str) -> JSONResponse:

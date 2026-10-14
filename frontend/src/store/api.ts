@@ -8,6 +8,8 @@ import {
 import { toast } from 'sonner'
 import { apiGet, apiSend, errorMessage } from '@/lib/api'
 import type {
+  AiConfig,
+  AiConfigUpdate,
   AnalysesPackage,
   ArchitectureReport,
   ComparePackage,
@@ -48,6 +50,7 @@ const KEY = {
   explorerFile: (projectId: number, path: string) =>
     ['projects', projectId, 'explorer-file', path] as const,
   report: (runId: number) => ['runs', runId, 'report'] as const,
+  aiConfig: ['ai-config'] as const,
 }
 
 // ---------------------------------------------------------------------------
@@ -169,6 +172,18 @@ export function useReport(runId: number | null) {
   })
 }
 
+/**
+ * Configuração efetiva do provedor de IA (GET /api/ai/config).
+ *
+ * A API key nunca volta ao navegador — o backend expõe só `has_api_key`.
+ */
+export function useAiConfig() {
+  return useQuery({
+    queryKey: KEY.aiConfig,
+    queryFn: () => apiGet<AiConfig>('/api/ai/config'),
+  })
+}
+
 /** Diff entre duas runs do mesmo projeto. */
 export function useCompare(
   projectId: number | null,
@@ -275,6 +290,25 @@ export function useGenerateReport(runId: number | null) {
     onSuccess: (report) => {
       void queryClient.invalidateQueries({ queryKey: KEY.report(report.run_id) })
       toast.success('Relatório arquitetural gerado.')
+    },
+    onError: (error) => toast.error(errorMessage(error)),
+  })
+}
+
+/**
+ * Salva a configuração do provedor de IA (PUT /api/ai/config).
+ *
+ * `api_key` null/vazia preserva a chave já gravada no backend (nunca é
+ * reenviada para o navegador).
+ */
+export function useSaveAiConfig() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: AiConfigUpdate) =>
+      apiSend<{ ok: boolean }>('PUT', '/api/ai/config', payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: KEY.aiConfig })
+      toast.success('Configuração salva')
     },
     onError: (error) => toast.error(errorMessage(error)),
   })
