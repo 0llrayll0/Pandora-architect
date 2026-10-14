@@ -31,8 +31,13 @@ A plataforma reúne métricas, dependências, ciclos de dependência e exploraç
 - Explorador de diretórios e arquivos, com visualização de símbolos.
 - Acompanhamento do progresso da análise em tempo real.
 - Armazenamento local de dados de projetos e análises usando SQLite.
+- Hotspots de complexidade com score baseado em métricas reais.
+- Histórico de análises com comparação entre runs (diff de métricas, dependências e ciclos).
+- Mapa da arquitetura interativo com grafo de módulos e símbolos.
+- Arquiteto IA: relatório arquitetural com heurísticas determinísticas + sugestões de LLM local ou cloud (Ollama, OpenAI, Claude, Gemini).
+- Configuração de provedor de IA pela interface (Ollama local, OpenAI, Anthropic, Gemini ou customizado).
 
-Os resultados exibidos são derivados das análises executadas. Módulos ainda não implementados são identificados como recursos futuros, sem preenchimento com dados simulados.
+Os resultados exibidos são derivados das análises executadas. Funcionalidades não implementadas são sinalizadas como tais na interface, sem preenchimento com dados simulados.
 
 ## Vislumbre da interface
 
@@ -56,6 +61,18 @@ Grafo de módulos e símbolos com as relações entre eles — aqui, 576 nós e 
 
 <img src="docs/screenshots/mapa-arquitetura-det.png" alt="Mapa da arquitetura em modo detalhado" width="100%">
 
+### Arquiteto IA
+
+Relatório arquitetural com resumo executivo, pontos fortes, riscos, dependências internas/externas e plano de ação — gerado com heurísticas locais e, opcionalmente, LLM.
+
+<img src="docs/screenshots/arquiteto-ia.png" alt="Relatório do Arquiteto IA" width="100%">
+
+### Configurações
+
+Provedor de IA configurável: Ollama (local), OpenAI, Anthropic (Claude), Google Gemini ou customizado — com modelo, base URL e API key.
+
+<img src="docs/screenshots/config-ia.png" alt="Configurações do provedor de IA" width="100%">
+
 ## Tecnologias
 
 | Camada | Tecnologias |
@@ -66,6 +83,7 @@ Grafo de módulos e símbolos com as relações entre eles — aqui, 576 nós e 
 | Interface | Tailwind CSS v4, shadcn/ui |
 | Estado e consultas | Zustand, TanStack Query |
 | Progresso em tempo real | Server-Sent Events (SSE) |
+| IA (opcional) | Ollama (local), OpenAI, Anthropic, Google Gemini |
 
 ## Requisitos
 
@@ -144,6 +162,8 @@ As variáveis de configuração usam o prefixo `PANDORA_` no `.env` da raiz. Ent
 
 A variável `PANDORA_ALLOWED_DIRS` define os diretórios que o backend pode acessar. Use `:` como separador no Linux/macOS e `;` no Windows.
 
+Além das variáveis de ambiente, o provedor de IA (Ollama, OpenAI, Anthropic, Gemini ou customizado) pode ser configurado pela interface em **Configurações**. As variáveis `PANDORA_AI_PROVIDER`, `PANDORA_AI_API_KEY`, `PANDORA_AI_BASE_URL` e `PANDORA_AI_MODEL` também funcionam via `.env`. A API key nunca é enviada de volta ao navegador.
+
 Consulte `.env.example` para ver as opções disponíveis e seus valores esperados.
 
 ## API
@@ -163,8 +183,10 @@ A interface utiliza, entre outros, os seguintes endpoints:
 | `GET` | `/api/analysis/runs/{run_id}/dependencies` | Consultar dependências |
 | `GET` | `/api/analysis/runs/{run_id}/events` | Receber eventos de progresso via SSE |
 | `GET` | `/api/graph/{run_id}/cycles` | Consultar ciclos de dependência |
+| `GET`, `POST` | `/api/ai/runs/{run_id}/report` | Gerar/consultar relatório do Arquiteto IA |
+| `GET`, `PUT` | `/api/ai/config` | Consultar/atualizar configuração do provedor de IA |
 
-A API também disponibiliza endpoints adicionais para fases futuras. Erros são retornados em um formato estruturado com os campos `detail` e `code`.
+A interface também disponibiliza endpoints adicionais. Erros são retornados em um formato estruturado com os campos `detail` e `code`.
 
 ## Estrutura do projeto
 
@@ -194,11 +216,11 @@ pandora-architect/
 | Fase | Módulos | Estado |
 | --- | --- | --- |
 | 1 | Projetos, análise, dependências, ciclos e explorador | Entregue |
-| 2 | Hotspots e histórico | Planejado |
-| 3 | Mapa da arquitetura | Planejado |
-| 6 | Arquiteto IA | Planejado |
+| 2 | Hotspots e histórico | Entregue |
+| 3 | Mapa da arquitetura | Entregue |
+| 6 | Arquiteto IA | Entregue |
 
-Os recursos planejados serão apresentados como indisponíveis até serem implementados.
+Todas as fases do roadmap estão entregues.
 
 ## Desenvolvimento do frontend
 
